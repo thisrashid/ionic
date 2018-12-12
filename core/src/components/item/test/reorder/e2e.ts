@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('item: reorder', async () => {
+test('item: reorder', async () => {
   const page = await newE2EPage({
-    url: '/src/components/item/test/reorder?ionic:animated=false'
+    url: '/src/components/item/test/reorder?ionic:_testing=true'
   });
 
   const compare = await page.compareScreenshot();

@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('action-sheet: noBackdropDismiss', async () => {
+test('action-sheet: noBackdropDismiss', async () => {
   const page = await newE2EPage({
-    url: `/src/components/action-sheet/test/no-backdrop-dismiss?ionic:animated=false`
+    url: `/src/components/action-sheet/test/no-backdrop-dismiss?ionic:_testing=true`
   });
 
   const presentBtn = await page.find('#noBackdropDismiss');

@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('grid: basic', async () => {
+test('grid: basic', async () => {
   const page = await newE2EPage({
-    url: '/src/components/grid/test/basic?ionic:animated=false'
+    url: '/src/components/grid/test/basic?ionic:_testing=true'
   });
 
   const compare = await page.compareScreenshot();

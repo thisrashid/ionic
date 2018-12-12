@@ -8,6 +8,7 @@
    * @prop --bar-background: Background of the range bar
    * @prop --bar-background-active: Background of the active range bar
    * @prop --bar-height: Height of the range bar
+   * @prop --bar-border-radius: Border radius of the range bar
    * @prop --height: Height of the range
    * @prop --knob-background: Background of the range knob
    * @prop --knob-border-radius: Border radius of the range knob
@@ -19,12 +20,17 @@
   display: flex;
   position: relative;
 
-  flex: 1;
+  flex: 3;
   align-items: center;
 
   font-family: $font-family-base;
 
   user-select: none;
+  z-index: $z-index-item-input;
+}
+
+:host(.range-disabled) {
+  pointer-events: none;
 }
 
 ::slotted(ion-label) {
@@ -34,9 +40,6 @@
 ::slotted(ion-icon[slot]) {
   font-size: 24px;
 }
-
-
-
 
 .range-slider {
   position: relative;
@@ -89,6 +92,7 @@
 }
 
 .range-bar {
+  @include border-radius(var(--bar-border-radius));
   @include position(calc((var(--height) - var(--bar-height)) / 2), null, null, 0);
   position: absolute;
 

@@ -26,10 +26,9 @@
 
 // iOS Solid Button
 // --------------------------------------------------
-@media (any-hover: hover) {
-  :host(.button-solid:hover) {
-    --opacity: #{$button-ios-opacity-hover};
-  }
+
+:host(.button-solid) {
+  --background-activated: #{ion-color(primary, shade)};
 }
 
 :host(.button-solid.activated) {
@@ -56,11 +55,6 @@
 
 // iOS Clear Button
 // --------------------------------------------------
-@media (any-hover: hover) {
-  :host(.button-clear:hover) {
-    --opacity: #{$button-ios-clear-opacity-hover};
-  }
-}
 
 :host(.button-clear.activated) {
   --opacity: #{$button-ios-clear-opacity-activated};
@@ -117,4 +111,18 @@
 
 :host(.button-strong) {
   font-weight: #{$button-ios-strong-font-weight};
+}
+
+
+// iOS Button Focus
+// --------------------------------------------------
+
+@media (any-hover: hover) {
+  :host(.button-solid:hover) {
+    --opacity: #{$button-ios-opacity-hover};
+  }
+
+  :host(.button-clear:hover) {
+    --opacity: #{$button-ios-clear-opacity-hover};
+  }
 }

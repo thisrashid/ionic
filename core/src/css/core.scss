@@ -72,6 +72,7 @@ body.backdrop-no-scroll {
 ion-route,
 ion-route-redirect,
 ion-router,
+ion-select-option,
 ion-animation-controller,
 ion-nav-controller,
 ion-menu-controller,
@@ -98,11 +99,14 @@ ion-toast-controller,
 html.plt-ios.plt-hybrid, html.plt-ios.plt-pwa {
   --ion-statusbar-padding: 20px;
 }
-html {
-  --ion-safe-area-top: var(--ion-statusbar-padding);
+
+@supports (padding-top: 20px) {
+  html {
+    --ion-safe-area-top: var(--ion-statusbar-padding);
+  }
 }
 
-// TODO: remove once Safari 11.2 dies
+// TODO: remove once Safari 11.2 is no longer supported
 @supports (padding-top: constant(safe-area-inset-top)) {
   html {
     --ion-safe-area-top: constant(safe-area-inset-top);

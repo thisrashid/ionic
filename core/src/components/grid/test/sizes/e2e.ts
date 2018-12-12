@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('grid: sizes', async () => {
+test('grid: sizes', async () => {
   const page = await newE2EPage({
-    url: '/src/components/grid/test/sizes?ionic:animated=false'
+    url: '/src/components/grid/test/sizes?ionic:_testing=true'
   });
 
   const compare = await page.compareScreenshot();

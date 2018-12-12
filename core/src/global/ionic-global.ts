@@ -34,9 +34,12 @@ if (config.getBoolean('persistConfig')) {
 // first see if the mode was set as an attribute on <html>
 // which could have been set by the user, or by prerendering
 // otherwise get the mode via config settings, and fallback to md
-const documentElement = document.documentElement;
+const documentElement = document.documentElement!;
 const mode = config.get('mode', documentElement.getAttribute('mode') || (isPlatform(win, 'ios') ? 'ios' : 'md'));
 Ionic.mode = Context.mode = mode;
 config.set('mode', mode);
 documentElement.setAttribute('mode', mode);
 documentElement.classList.add(mode);
+if (config.getBoolean('_testing')) {
+  config.set('animated', false);
+}

@@ -1,6 +1,6 @@
 import { Component, ComponentInterface, Element, Event, EventEmitter, Method, Prop, QueueApi, State, Watch } from '@stencil/core';
 
-import { Gesture, GestureDetail, Mode } from '../../interface';
+import { Gesture, GestureDetail, Mode, RefresherEventDetail } from '../../interface';
 import { createThemedClasses } from '../../utils/theme';
 
 @Component({
@@ -20,6 +20,8 @@ export class Refresher implements ComponentInterface {
 
   mode!: Mode;
 
+  @Element() el!: HTMLElement;
+
   @Prop({ context: 'queue' }) queue!: QueueApi;
 
   /**
@@ -34,11 +36,9 @@ export class Refresher implements ComponentInterface {
    */
   @State() private state: RefresherState = RefresherState.Inactive;
 
-  @Element() el!: HTMLElement;
-
   /**
    * The minimum distance the user must pull down until the
-   * refresher will go into the `refreshing` state. Defaults to `60`.
+   * refresher will go into the `refreshing` state.
    */
   @Prop() pullMin = 60;
 
@@ -49,19 +49,18 @@ export class Refresher implements ComponentInterface {
    */
   @Prop() pullMax: number = this.pullMin + 60;
 
-  // TODO: NEVER USED
   /**
-   * Time it takes to close the refresher. Defaults to `280ms`.
+   * Time it takes to close the refresher.
    */
   @Prop() closeDuration = '280ms';
 
   /**
-   * Time it takes the refresher to to snap back to the `refreshing` state. Defaults to `280ms`.
+   * Time it takes the refresher to to snap back to the `refreshing` state.
    */
   @Prop() snapbackDuration = '280ms';
 
   /**
-   * If true, the refresher will be hidden. Defaults to `false`.
+   * If `true`, the refresher will be hidden.
    */
   @Prop() disabled = false;
   @Watch('disabled')
@@ -77,7 +76,7 @@ export class Refresher implements ComponentInterface {
    * Updates the refresher state to `refreshing`. The `complete()` method should be
    * called when the async operation has completed.
    */
-  @Event() ionRefresh!: EventEmitter<void>;
+  @Event() ionRefresh!: EventEmitter<RefresherEventDetail>;
 
   /**
    * Emitted while the user is pulling down the content and exposing the refresher.
@@ -175,8 +174,6 @@ export class Refresher implements ComponentInterface {
   }
 
   private onStart() {
-    console.log('start');
-
     this.progress = 0;
     this.state = RefresherState.Inactive;
   }
@@ -307,7 +304,9 @@ export class Refresher implements ComponentInterface {
 
     // emit "refresh" because it was pulled down far enough
     // and they let go to begin refreshing
-    this.ionRefresh.emit();
+    this.ionRefresh.emit({
+      complete: this.complete.bind(this)
+    });
   }
 
   private close(state: RefresherState, delay: string) {
@@ -323,7 +322,7 @@ export class Refresher implements ComponentInterface {
     // reset set the styles on the scroll element
     // set that the refresh is actively cancelling/completing
     this.state = state;
-    this.setCss(0, '', true, delay);
+    this.setCss(0, this.closeDuration, true, delay);
 
     // TODO: stop gesture
   }

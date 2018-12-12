@@ -15,21 +15,10 @@
   z-index: $z-index-page-container;
 }
 
-ion-tabbar {
-  @include position(null, 0, 0, 0);
+.tabs-inner {
+  position: relative;
 
-  display: none;
-  position: absolute;
-}
+  flex: 1;
 
-:host(.tabbar-visible.tabs-md)::slotted(ion-tab) {
-  bottom: 56px; // tabbar height (it's fixed!)
-}
-
-:host(.tabbar-visible.tabs-ios)::slotted(ion-tab) {
-  bottom: 50px; // tabbar height (it's fixed!)
-}
-
-:host(.tabbar-visible) ion-tabbar {
-  display: flex;
+  contain: layout size style;
 }

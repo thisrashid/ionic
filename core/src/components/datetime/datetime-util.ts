@@ -178,7 +178,7 @@ export function parseDate(val: string | undefined | null): DatetimeData | undefi
   // ISO 8601 format: 1994-12-15T13:47:20Z
   let parse: any[] | null = null;
 
-  if (val != null) {
+  if (val != null && val !== '') {
     // try parsing for just time first, HH:MM
     parse = TIME_REGEXP.exec(val);
     if (parse) {
@@ -356,7 +356,7 @@ export function convertDataToISO(data: DatetimeData): string {
 
           } else {
             // YYYY-MM-DDTHH:mm:SS+/-HH:mm
-            rtn += (data.tzOffset > 0 ? '+' : '-') + twoDigit(Math.floor(data.tzOffset / 60)) + ':' + twoDigit(data.tzOffset % 60);
+            rtn += (data.tzOffset > 0 ? '+' : '-') + twoDigit(Math.floor(Math.abs(data.tzOffset / 60))) + ':' + twoDigit(data.tzOffset % 60);
           }
         }
       }

@@ -90,8 +90,8 @@ export class MenuController implements MenuControllerI {
   }
 
   /**
-   * Returns true if the specified menu is open. If the menu is not specified, it
-   * will return true if any menu is currently open.
+   * Returns `true` if the specified menu is open. If the menu is not specified, it
+   * will return `true` if any menu is currently open.
    */
   @Method()
   async isOpen(menuId?: string | null): Promise<boolean> {
@@ -105,7 +105,7 @@ export class MenuController implements MenuControllerI {
   }
 
   /**
-   * Returns true if the specified menu is enabled.
+   * Returns `true` if the specified menu is enabled.
    */
   @Method()
   async isEnabled(menuId?: string | null): Promise<boolean> {
@@ -118,7 +118,7 @@ export class MenuController implements MenuControllerI {
 
   /**
    * Used to get a menu instance. If a menu is not provided then it will
-   * return the first menu found. If the specified menu is `left` or `right`, then
+   * return the first menu found. If the specified menu is `start` or `end`, then
    * it will return the enabled menu on that side. Otherwise, it will try to find
    * the menu using the menu's `id` property. If a menu is not found then it will
    * return `null`.
@@ -184,7 +184,7 @@ export class MenuController implements MenuControllerI {
   }
 
   /**
-   * Returns true if any menu is currently animating.
+   * Returns `true` if any menu is currently animating.
    */
   @Method()
   async isAnimating(): Promise<boolean> {
@@ -192,11 +192,21 @@ export class MenuController implements MenuControllerI {
     return this.isAnimatingSync();
   }
 
+  /**
+   * Registers a new animation that can be used in any `ion-menu`.
+   *
+   * ```
+   * <ion-menu type="my-animation">
+   * ```
+   */
   @Method()
   registerAnimation(name: string, animation: AnimationBuilder) {
     this.menuAnimations.set(name, animation);
   }
 
+  /**
+   * @internal
+   */
   @Method()
   _getInstance(): Promise<MenuControllerI> {
     return Promise.resolve(this);

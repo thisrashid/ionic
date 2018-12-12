@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('checkbox: basic', async () => {
+test('checkbox: basic', async () => {
   const page = await newE2EPage({
-    url: '/src/components/checkbox/test/basic?ionic:animated=false'
+    url: '/src/components/checkbox/test/basic?ionic:_testing=true'
   });
 
   const compare = await page.compareScreenshot();

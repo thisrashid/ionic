@@ -26,16 +26,16 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
 
   @Prop({ connect: 'ion-animation-controller' }) animationCtrl!: HTMLIonAnimationControllerElement;
   @Prop({ context: 'config' }) config!: Config;
+  /** @internal */
   @Prop() overlayIndex!: number;
 
   /**
    * The mode determines which platform styles to use.
-   * Possible values are: `"ios"` or `"md"`.
    */
   @Prop() mode!: Mode;
 
   /**
-   * If true, the keyboard will be automatically dismissed when the overlay is presented.
+   * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
    */
   @Prop() keyboardClose = true;
 
@@ -61,7 +61,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
   @Prop() cssClass?: string | string[];
 
   /**
-   * If true, the action sheet will be dismissed when the backdrop is clicked. Defaults to `true`.
+   * If `true`, the action sheet will be dismissed when the backdrop is clicked.
    */
   @Prop() backdropDismiss = true;
 
@@ -76,12 +76,12 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
   @Prop() subHeader?: string;
 
   /**
-   * If true, the action sheet will be translucent. Defaults to `false`.
+   * If `true`, the action sheet will be translucent.
    */
   @Prop() translucent = false;
 
   /**
-   * If true, the action sheet will animate. Defaults to `true`.
+   * If `true`, the action sheet will animate.
    */
   @Prop() animated = true;
 
@@ -241,6 +241,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
                   {b.icon && <ion-icon icon={b.icon} lazy={false} class="action-sheet-icon" />}
                   {b.text}
                 </span>
+                {this.mode === 'md' && <ion-ripple-effect></ion-ripple-effect>}
               </button>
             )}
           </div>
@@ -248,7 +249,6 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
           {cancelButton &&
             <div class="action-sheet-group action-sheet-group-cancel">
               <button
-                ion-activatable
                 type="button"
                 class={buttonClass(cancelButton)}
                 onClick={() => this.buttonClick(cancelButton)}
@@ -274,6 +274,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
 function buttonClass(button: ActionSheetButton): CssClassMap {
   return {
     'action-sheet-button': true,
+    'ion-activatable': true,
     [`action-sheet-${button.role}`]: button.role !== undefined,
     ...getClassMap(button.cssClass),
   };

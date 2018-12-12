@@ -16,7 +16,8 @@ import { mdLeaveAnimation } from './animations/md.leave';
   styleUrls: {
     ios: 'modal.ios.scss',
     md: 'modal.md.scss'
-  }
+  },
+  scoped: true
 })
 export class Modal implements ComponentInterface, OverlayInterface {
 
@@ -29,17 +30,20 @@ export class Modal implements ComponentInterface, OverlayInterface {
 
   @Prop({ connect: 'ion-animation-controller' }) animationCtrl!: HTMLIonAnimationControllerElement;
   @Prop({ context: 'config' }) config!: Config;
+
+  /** @internal */
   @Prop() overlayIndex!: number;
+
+  /** @internal */
   @Prop() delegate?: FrameworkDelegate;
 
   /**
    * The mode determines which platform styles to use.
-   * Possible values are: `"ios"` or `"md"`.
    */
   @Prop() mode!: Mode;
 
   /**
-   * If true, the keyboard will be automatically dismissed when the overlay is presented.
+   * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
    */
   @Prop() keyboardClose = true;
 
@@ -70,17 +74,17 @@ export class Modal implements ComponentInterface, OverlayInterface {
   @Prop() cssClass?: string | string[];
 
   /**
-   * If true, the modal will be dismissed when the backdrop is clicked. Defaults to `true`.
+   * If `true`, the modal will be dismissed when the backdrop is clicked.
    */
   @Prop() backdropDismiss = true;
 
   /**
-   * If true, a backdrop will be displayed behind the modal. Defaults to `true`.
+   * If `true`, a backdrop will be displayed behind the modal.
    */
   @Prop() showBackdrop = true;
 
   /**
-   * If true, the modal will animate. Defaults to `true`.
+   * If `true`, the modal will animate.
    */
   @Prop() animated = true;
 
@@ -229,6 +233,6 @@ export class Modal implements ComponentInterface, OverlayInterface {
 const LIFECYCLE_MAP: any = {
   'ionModalDidPresent': 'ionViewDidEnter',
   'ionModalWillPresent': 'ionViewWillEnter',
-  'ionModalWillDismiss': 'ionViewWillDismiss',
-  'ionModalDidDismiss': 'ionViewDidDismiss',
+  'ionModalWillDismiss': 'ionViewWillLeave',
+  'ionModalDidDismiss': 'ionViewDidLeave',
 };

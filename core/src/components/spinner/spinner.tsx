@@ -29,13 +29,12 @@ export class Spinner implements ComponentInterface {
 
   /**
    * The name of the SVG spinner to use. If a name is not provided, the platform's default
-   * spinner will be used. Possible values are: `"lines"`, `"lines-small"`, `"dots"`, `"bubbles"`,
-   * `"circles"`, `"crescent"`.
+   * spinner will be used.
    */
   @Prop() name?: SpinnerTypes;
 
   /**
-   * If true, the spinner's animation will be paused. Defaults to `false`.
+   * If `true`, the spinner's animation will be paused.
    */
   @Prop() paused = false;
 
@@ -53,7 +52,7 @@ export class Spinner implements ComponentInterface {
         ...createColorClasses(this.color),
 
         [`spinner-${this.getName()}`]: true,
-        'spinner-paused': !!this.paused
+        'spinner-paused': !!this.paused || this.config.getBoolean('_testing')
       }
     };
   }

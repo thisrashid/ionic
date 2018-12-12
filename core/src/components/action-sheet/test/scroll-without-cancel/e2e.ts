@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('action-sheet: scrollWithoutCancel', async () => {
+test('action-sheet: scrollWithoutCancel', async () => {
   const page = await newE2EPage({
-    url: `/src/components/action-sheet/test/scroll-without-cancel?ionic:animated=false`
+    url: `/src/components/action-sheet/test/scroll-without-cancel?ionic:_testing=true`
   });
 
   const presentBtn = await page.find('#scrollWithoutCancel');

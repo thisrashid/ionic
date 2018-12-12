@@ -14,15 +14,13 @@ export class Footer implements ComponentInterface {
 
   /**
    * The mode determines which platform styles to use.
-   * Possible values are: `"ios"` or `"md"`.
    */
   @Prop() mode!: Mode;
 
   /**
-   * If true, the footer will be translucent.
+   * If `true`, the footer will be translucent.
    * Note: In order to scroll content behind the footer, the `fullscreen`
    * attribute needs to be set on the content.
-   * Defaults to `false`.
    */
   @Prop() translucent = false;
 

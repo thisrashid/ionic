@@ -1,7 +1,7 @@
 import { Component, ComponentInterface, Element, Event, EventEmitter, Method, Prop, State, Watch } from '@stencil/core';
 
 import { Color, Mode, StyleEvent, TextInputChangeEvent } from '../../interface';
-import { debounceEvent, deferEvent, renderHiddenInput } from '../../utils/helpers';
+import { debounceEvent, findItemLabel, renderHiddenInput } from '../../utils/helpers';
 import { createColorClasses } from '../../utils/theme';
 
 @Component({
@@ -24,7 +24,6 @@ export class Textarea implements ComponentInterface {
 
   /**
    * The mode determines which platform styles to use.
-   * Possible values are: `"ios"` or `"md"`.
    */
   @Prop() mode!: Mode;
 
@@ -36,22 +35,22 @@ export class Textarea implements ComponentInterface {
   @Prop() color?: Color;
 
   /**
-   * Indicates whether and how the text value should be automatically capitalized as it is entered/edited by the user. Defaults to `"none"`.
+   * Indicates whether and how the text value should be automatically capitalized as it is entered/edited by the user.
    */
   @Prop() autocapitalize = 'none';
 
   /**
-   * This Boolean attribute lets you specify that a form control should have input focus when the page loads. Defaults to `false`.
+   * This Boolean attribute lets you specify that a form control should have input focus when the page loads.
    */
   @Prop() autofocus = false;
 
   /**
-   * If true, the value will be cleared after focus upon edit. Defaults to `true` when `type` is `"password"`, `false` for all other types.
+   * If `true`, the value will be cleared after focus upon edit. Defaults to `true` when `type` is `"password"`, `false` for all other types.
    */
   @Prop({ mutable: true }) clearOnEdit = false;
 
   /**
-   * Set the amount of time, in milliseconds, to wait to trigger the `ionChange` event after each keystroke. Default `0`.
+   * Set the amount of time, in milliseconds, to wait to trigger the `ionChange` event after each keystroke.
    */
   @Prop() debounce = 0;
 
@@ -61,7 +60,7 @@ export class Textarea implements ComponentInterface {
   }
 
   /**
-   * If true, the user cannot interact with the textarea. Defaults to `false`.
+   * If `true`, the user cannot interact with the textarea.
    */
   @Prop() disabled = false;
 
@@ -88,20 +87,20 @@ export class Textarea implements ComponentInterface {
   /**
    * Instructional text that shows before the input has a value.
    */
-  @Prop() placeholder?: string;
+  @Prop() placeholder?: string | null;
 
   /**
-   * If true, the user cannot modify the value. Defaults to `false`.
+   * If `true`, the user cannot modify the value.
    */
   @Prop() readonly = false;
 
   /**
-   * If true, the user must fill in a value before submitting a form.
+   * If `true`, the user must fill in a value before submitting a form.
    */
   @Prop() required = false;
 
   /**
-   * If true, the element will have its spelling and grammar checked. Defaults to `false`.
+   * If `true`, the element will have its spelling and grammar checked.
    */
   @Prop() spellcheck = false;
 
@@ -116,23 +115,24 @@ export class Textarea implements ComponentInterface {
   @Prop() rows?: number;
 
   /**
-   * Indicates how the control wraps text. Possible values are: `"hard"`, `"soft"`, `"off"`.
+   * Indicates how the control wraps text.
    */
-  @Prop() wrap?: string;
+  @Prop() wrap?: 'hard' | 'soft' | 'off';
 
   /**
    * The value of the textarea.
    */
-  @Prop({ mutable: true }) value = '';
+  @Prop({ mutable: true }) value?: string | null = '';
 
   /**
    * Update the native input element when the value changes
    */
   @Watch('value')
   protected valueChanged() {
-    const { nativeInput, value } = this;
-    if (nativeInput!.value !== value) {
-      nativeInput!.value = value;
+    const nativeInput = this.nativeInput;
+    const value = this.getValue();
+    if (nativeInput && nativeInput.value !== value) {
+      nativeInput.value = value;
     }
     this.ionChange.emit({ value });
   }
@@ -149,6 +149,7 @@ export class Textarea implements ComponentInterface {
 
   /**
    * Emitted when the styles change.
+   * @internal
    */
   @Event() ionStyle!: EventEmitter<StyleEvent>;
 
@@ -162,12 +163,18 @@ export class Textarea implements ComponentInterface {
    */
   @Event() ionFocus!: EventEmitter<void>;
 
-  componentDidLoad() {
-    this.ionStyle = deferEvent(this.ionStyle);
-    this.debounceChanged();
+  componentWillLoad() {
     this.emitStyle();
   }
 
+  componentDidLoad() {
+    this.debounceChanged();
+  }
+
+  /**
+   * Sets focus on the specified `ion-textarea`. Use this method instead of the global
+   * `input.focus()`.
+   */
   @Method()
   setFocus() {
     if (this.nativeInput) {
@@ -181,33 +188,10 @@ export class Textarea implements ComponentInterface {
       'textarea': true,
       'input': true,
       'interactive-disabled': this.disabled,
+      'has-placeholder': this.placeholder != null,
       'has-value': this.hasValue(),
       'has-focus': this.hasFocus
     });
-  }
-
-  private onInput(ev: KeyboardEvent) {
-    this.value = this.nativeInput!.value;
-    this.emitStyle();
-    this.ionInput.emit(ev);
-  }
-
-  private onFocus() {
-    this.hasFocus = true;
-    this.focusChange();
-
-    this.ionFocus.emit();
-  }
-
-  private onBlur() {
-    this.hasFocus = false;
-    this.focusChange();
-
-    this.ionBlur.emit();
-  }
-
-  private onKeyDown() {
-    this.checkClearOnEdit();
   }
 
   /**
@@ -237,43 +221,79 @@ export class Textarea implements ComponentInterface {
   }
 
   private hasValue(): boolean {
-    return this.value !== '';
+    return this.getValue() !== '';
+  }
+
+  private getValue(): string {
+    return this.value || '';
+  }
+
+  private onInput = (ev: Event) => {
+    if (this.nativeInput) {
+      this.value = this.nativeInput.value;
+    }
+    this.emitStyle();
+    this.ionInput.emit(ev as KeyboardEvent);
+  }
+
+  private onFocus = () => {
+    this.hasFocus = true;
+    this.focusChange();
+
+    this.ionFocus.emit();
+  }
+
+  private onBlur = () => {
+    this.hasFocus = false;
+    this.focusChange();
+
+    this.ionBlur.emit();
+  }
+
+  private onKeyDown = () => {
+    this.checkClearOnEdit();
   }
 
   hostData() {
     return {
-      class: {
-        ...createColorClasses(this.color)
-      }
+      'aria-disabled': this.disabled ? 'true' : null,
+      class: createColorClasses(this.color)
     };
   }
 
   render() {
-    renderHiddenInput(this.el, this.name, this.value, this.disabled);
+    const value = this.getValue();
+    renderHiddenInput(false, this.el, this.name, value, this.disabled);
+
+    const labelId = this.inputId + '-lbl';
+    const label = findItemLabel(this.el);
+    if (label) {
+      label.id = labelId;
+    }
 
     return (
       <textarea
         class="native-textarea"
-        ref={el => this.nativeInput = el as HTMLTextAreaElement}
+        ref={el => this.nativeInput = el}
         autoCapitalize={this.autocapitalize}
         autoFocus={this.autofocus}
         disabled={this.disabled}
         maxLength={this.maxlength}
         minLength={this.minlength}
         name={this.name}
-        placeholder={this.placeholder}
+        placeholder={this.placeholder || ''}
         readOnly={this.readonly}
         required={this.required}
         spellCheck={this.spellcheck}
         cols={this.cols}
         rows={this.rows}
         wrap={this.wrap}
-        onInput={this.onInput.bind(this)}
-        onBlur={this.onBlur.bind(this)}
-        onFocus={this.onFocus.bind(this)}
-        onKeyDown={this.onKeyDown.bind(this)}
+        onInput={this.onInput}
+        onBlur={this.onBlur}
+        onFocus={this.onFocus}
+        onKeyDown={this.onKeyDown}
       >
-        {this.value}
+        {value}
       </textarea>
     );
   }

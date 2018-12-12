@@ -1,6 +1,6 @@
-import { Component, ComponentInterface, Element, Event, EventEmitter, Method, Prop, QueueApi } from '@stencil/core';
+import { Component, ComponentInterface, Element, Event, EventEmitter, Method, Prop, QueueApi, Watch } from '@stencil/core';
 
-import { AnimationBuilder, ComponentProps, ComponentRef, Config, FrameworkDelegate, Mode, NavOutlet, RouteID, RouteWrite, RouterOutletOptions } from '../../interface';
+import { Animation, AnimationBuilder, ComponentProps, ComponentRef, Config, FrameworkDelegate, Gesture, Mode, NavOutlet, RouteID, RouteWrite, RouterDirection, RouterOutletOptions, SwipeGestureHandler } from '../../interface';
 import { transition } from '../../utils';
 import { attachComponent, detachComponent } from '../../utils/framework-delegate';
 
@@ -14,8 +14,8 @@ export class RouterOutlet implements ComponentInterface, NavOutlet {
   private activeEl: HTMLElement | undefined;
   private activeComponent: any;
   private waitPromise?: Promise<void>;
-
-  mode!: Mode;
+  private gesture?: Gesture;
+  private ani?: Animation;
 
   @Element() el!: HTMLElement;
 
@@ -24,27 +24,106 @@ export class RouterOutlet implements ComponentInterface, NavOutlet {
   @Prop({ context: 'window' }) win!: Window;
   @Prop({ context: 'queue' }) queue!: QueueApi;
 
-  @Prop() animated = true;
-  @Prop() animation?: AnimationBuilder;
+  /** @internal */
+  @Prop() mode!: Mode;
+
+  /** @internal */
   @Prop() delegate?: FrameworkDelegate;
 
+  /**
+   * If `true`, the router-outlet should animate the transition of components.
+   */
+  @Prop() animated = true;
+
+  /**
+   * By default `ion-nav` animates transition between pages based in the mode (ios or material design).
+   * However, this property allows to create custom transition using `AnimateBuilder` functions.
+   */
+  @Prop() animation?: AnimationBuilder;
+
+  /** @internal */
+  @Prop() swipeHandler?: SwipeGestureHandler;
+  @Watch('swipeHandler')
+  swipeHandlerChanged() {
+    if (this.gesture) {
+      this.gesture.setDisabled(this.swipeHandler === undefined);
+    }
+  }
+
+  /** @internal */
   @Event() ionNavWillLoad!: EventEmitter<void>;
+
+  /** @internal */
   @Event() ionNavWillChange!: EventEmitter<void>;
+
+  /** @internal */
   @Event() ionNavDidChange!: EventEmitter<void>;
 
   componentWillLoad() {
     this.ionNavWillLoad.emit();
   }
 
+  async componentDidLoad() {
+    this.gesture = (await import('../../utils/gesture/swipe-back')).createSwipeBackGesture(
+      this.el,
+      this.queue,
+      () => !!this.swipeHandler && this.swipeHandler.canStart(),
+      () => this.swipeHandler && this.swipeHandler.onStart(),
+      step => this.ani && this.ani.progressStep(step),
+      (shouldComplete, step, dur) => {
+        if (this.ani) {
+          this.ani.progressEnd(shouldComplete, step, dur);
+        }
+        if (this.swipeHandler) {
+          this.swipeHandler.onEnd(shouldComplete);
+        }
+      }
+    );
+    this.swipeHandlerChanged();
+  }
+
   componentDidUnload() {
     this.activeEl = this.activeComponent = undefined;
   }
 
-  /**
-   * Set the root component for the given navigation stack
-   */
+  /** @internal */
   @Method()
-  async setRoot(component: ComponentRef, params?: ComponentProps, opts?: RouterOutletOptions): Promise<boolean> {
+  async commit(enteringEl: HTMLElement, leavingEl: HTMLElement | undefined, opts?: RouterOutletOptions): Promise<boolean> {
+    const unlock = await this.lock();
+    let changed = false;
+    try {
+      changed = await this.transition(enteringEl, leavingEl, opts);
+    } catch (e) {
+      console.error(e);
+    }
+    unlock();
+    return changed;
+  }
+
+  /** @internal */
+  @Method()
+  async setRouteId(id: string, params: ComponentProps | undefined, direction: RouterDirection): Promise<RouteWrite> {
+    const changed = await this.setRoot(id, params, {
+      duration: direction === 'root' ? 0 : undefined,
+      direction: direction === 'back' ? 'back' : 'forward',
+    });
+    return {
+      changed,
+      element: this.activeEl
+    };
+  }
+
+  /** @internal */
+  @Method()
+  async getRouteId(): Promise<RouteID | undefined> {
+    const active = this.activeEl;
+    return active ? {
+      id: active.tagName,
+      element: active,
+    } : undefined;
+  }
+
+  private async setRoot(component: ComponentRef, params?: ComponentProps, opts?: RouterOutletOptions): Promise<boolean> {
     if (this.activeComponent === component) {
       return false;
     }
@@ -63,64 +142,13 @@ export class RouterOutlet implements ComponentInterface, NavOutlet {
     return true;
   }
 
-  /** @hidden */
-  @Method()
-  async commit(enteringEl: HTMLElement, leavingEl: HTMLElement | undefined, opts?: RouterOutletOptions): Promise<boolean> {
-    const unlock = await this.lock();
-    let changed = false;
-    try {
-      changed = await this.transition(enteringEl, leavingEl, opts);
-    } catch (e) {
-      console.error(e);
-    }
-    unlock();
-    return changed;
-  }
-
-  /** @hidden */
-  @Method()
-  async setRouteId(id: string, params: ComponentProps | undefined, direction: number): Promise<RouteWrite> {
-    const changed = await this.setRoot(id, params, {
-      duration: direction === 0 ? 0 : undefined,
-      direction: direction === -1 ? 'back' : 'forward',
-    });
-    return {
-      changed,
-      element: this.activeEl
-    };
-  }
-
-  /** Returns the ID for the current route */
-  @Method()
-  async getRouteId(): Promise<RouteID | undefined> {
-    const active = this.activeEl;
-    return active ? {
-      id: active.tagName,
-      element: active,
-    } : undefined;
-  }
-
-  private async lock() {
-    const p = this.waitPromise;
-    let resolve!: () => void;
-    this.waitPromise = new Promise(r => resolve = r);
-
-    if (p !== undefined) {
-      await p;
-    }
-    return resolve;
-  }
-
-  async transition(enteringEl: HTMLElement, leavingEl: HTMLElement | undefined, opts?: RouterOutletOptions): Promise<boolean> {
-    // isTransitioning acts as a lock to prevent reentering
+  private async transition(enteringEl: HTMLElement, leavingEl: HTMLElement | undefined, opts: RouterOutletOptions = {}): Promise<boolean> {
     if (leavingEl === enteringEl) {
       return false;
     }
 
     // emit nav will change event
     this.ionNavWillChange.emit();
-
-    opts = opts || {};
 
     const { mode, queue, animationCtrl, win, el } = this;
     const animated = this.animated && this.config.getBoolean('animated', true);
@@ -136,7 +164,10 @@ export class RouterOutlet implements ComponentInterface, NavOutlet {
       enteringEl,
       leavingEl,
       baseEl: el,
-
+      progressCallback: (opts.progressAnimation
+        ? ani => this.ani = ani
+        : undefined
+      ),
       ...opts
     });
 
@@ -146,10 +177,20 @@ export class RouterOutlet implements ComponentInterface, NavOutlet {
     return true;
   }
 
+  private async lock() {
+    const p = this.waitPromise;
+    let resolve!: () => void;
+    this.waitPromise = new Promise(r => resolve = r);
+
+    if (p !== undefined) {
+      await p;
+    }
+    return resolve;
+  }
+
   render() {
-    return [
-      this.mode === 'ios' && <div class="nav-decor"/>,
+    return (
       <slot></slot>
-    ];
+    );
   }
 }

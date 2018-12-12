@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('button: strong', async () => {
+test('button: strong', async () => {
   const page = await newE2EPage({
-    url: '/src/components/button/test/strong?ionic:animated=false'
+    url: '/src/components/button/test/strong?ionic:_testing=true'
   });
 
   const compare = await page.compareScreenshot();

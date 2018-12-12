@@ -25,17 +25,16 @@ export class Picker implements ComponentInterface, OverlayInterface {
   @Prop({ connect: 'ion-animation-controller' }) animationCtrl!: HTMLIonAnimationControllerElement;
   @Prop({ context: 'config' }) config!: Config;
 
-  /** @hidden */
+  /** @internal */
   @Prop() overlayIndex!: number;
 
   /**
    * The mode determines which platform styles to use.
-   * Possible values are: `"ios"` or `"md"`.
    */
   @Prop() mode!: Mode;
 
   /**
-   * If true, the keyboard will be automatically dismissed when the overlay is presented.
+   * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
    */
   @Prop() keyboardClose = true;
 
@@ -71,17 +70,17 @@ export class Picker implements ComponentInterface, OverlayInterface {
   @Prop() duration = 0;
 
   /**
-   * If true, a backdrop will be displayed behind the picker. Defaults to `true`.
+   * If `true`, a backdrop will be displayed behind the picker.
    */
   @Prop() showBackdrop = true;
 
   /**
-   * If true, the picker will be dismissed when the backdrop is clicked. Defaults to `true`.
+   * If `true`, the picker will be dismissed when the backdrop is clicked.
    */
   @Prop() backdropDismiss = true;
 
   /**
-   * If true, the picker will animate. Defaults to `true`.
+   * If `true`, the picker will animate.
    */
   @Prop() animated = true;
 
@@ -257,7 +256,6 @@ export class Picker implements ComponentInterface, OverlayInterface {
             <div class={buttonWrapperClass(b)}>
               <button
                 type="button"
-                ion-activatable
                 onClick={() => this.buttonClick(b)}
                 class={buttonClass(b)}
               >
@@ -287,6 +285,7 @@ function buttonWrapperClass(button: PickerButton): CssClassMap {
 function buttonClass(button: PickerButton): CssClassMap {
   return {
     'picker-button': true,
+    'ion-activatable': true,
     ...getClassMap(button.cssClass)
   };
 }

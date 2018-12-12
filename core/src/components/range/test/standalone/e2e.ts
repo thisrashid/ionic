@@ -1,8 +1,8 @@
 import { newE2EPage } from '@stencil/core/testing';
 
-it('range: standalone', async () => {
+test('range: standalone', async () => {
   const page = await newE2EPage({
-    url: '/src/components/range/test/standalone?ionic:animated=false'
+    url: '/src/components/range/test/standalone?ionic:_testing=true'
   });
 
   const compare = await page.compareScreenshot();
